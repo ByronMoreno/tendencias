@@ -1,0 +1,44 @@
+services:
+  # Servicio 1: Base de datos PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: instituto_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - red-instituto
+
+  # Servicio 2: Aplicación Web Python + Flask
+  web:
+    build: .
+    container_name: flask-web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_NAME: instituto_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+      DB_PORT: 5432
+    depends_on:
+      - db
+    networks:
+      - red-instituto
+
+# Almacenamiento persistente para que los datos no se borren al apagar el contenedor
+volumes:
+  postgres_data:
+    name: instituto_postgres_data
+
+# Red interna que conecta ambos contenedores
+networks:
+  red-instituto:
+    driver: bridge
